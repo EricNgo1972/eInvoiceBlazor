@@ -1,0 +1,79 @@
+﻿@page "/Buyer"
+@using SPC.Helper.Extension
+
+@namespace eInvoiceApp.Views
+
+
+@inject NavigationManager navi
+@inject IJSRuntime jsRuntime
+
+<AuthorizeView>
+    <Authorized>
+
+        <h3>Hóa đơn của người mua</h3>
+        <h4>
+            <span>@TaxId</span>.
+            <span>@CompanyName</span>
+        </h4>
+
+        <hr />
+
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="Mã số thuế :" ColSpanMd="4">
+                <Template Context="qr">
+                    <DxComboBox Data="@TaxCodes" @bind-Value="@TaxId" SelectedItemChanged="@(async (x) => await LookupCompanyNameAsync())"></DxComboBox>
+                </Template>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Từ ngày :" ColSpanMd="4">
+                <Template Context="qr">
+                    <DxDateEdit @bind-Date="@FromDate" Format="dd-MM-yyyy"></DxDateEdit>
+                </Template>
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="Đến ngày :" ColSpanMd="4">
+                <Template Context="qr">
+                    <DxDateEdit @bind-Date="@ToDate" Format="dd-MM-yyyy"></DxDateEdit>
+                </Template>
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem>
+                <Template Context="qr">
+                    <DxButton @onclick="@SearchAsync" Text="Tìm hóa đơn"></DxButton>
+                </Template>
+            </DxFormLayoutItem>
+
+        </DxFormLayout>
+
+        @if (!string.IsNullOrEmpty(Status))
+        {
+            <div class="alert alert-info">@Status</div>
+        }
+       
+            <eInvoiceApp.Views.InvoicesView ListType="Buyer" Invoices="@Invoices"></eInvoiceApp.Views.InvoicesView>
+      
+
+    </Authorized>
+
+    <NotAuthorized>
+
+        <div class="alert alert-success">
+            <span>Quý khách hàng đã có tài khoản cần</span>
+            <DxButton Context="ctx" IconCssClass="oi oi-account-login" @onclick="@(()=> navi.NavigateTo("/Account/Login?Caller=Buyer",true))">Đăng nhập</DxButton>
+            <span>bằng tài khoản Lava để theo dõi hóa đơn của công ty mình.</span>
+
+            <span>Quý khách hàng chưa có tài khoản có thể</span>
+            <DxButton Context="ctx" IconCssClass="oi oi-account-login" @onclick="@(()=> navi.NavigateTo("/BuyerAccountSetup",true))">Đăng kí</DxButton>
+            <span>tài khoản Lava để theo dõi hóa đơn của công ty mình.</span>
+
+        </div>
+
+        <eInvoiceApp.Areas.eInvoice.Components.BuyerSecurityCode></eInvoiceApp.Areas.eInvoice.Components.BuyerSecurityCode>
+
+    </NotAuthorized>
+</AuthorizeView>
+
+@code  {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+}

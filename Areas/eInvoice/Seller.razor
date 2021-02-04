@@ -1,0 +1,168 @@
+﻿@page "/Seller"
+@using SPC.Helper.Extension
+
+@inject NavigationManager navi
+@inject IJSRuntime jsRuntime
+
+<AuthorizeView>
+    <Authorized>
+
+        <h3>Hóa đơn người bán</h3>
+        <h4>
+            <span>@TaxId</span>.
+            <span>@CompanyName</span>
+        </h4>
+        <hr />
+
+
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="Mã số thuế :" ColSpanMd="4">
+                <Template Context="qr">
+                    <DxComboBox Data="@TaxCodes" @bind-Value="@TaxId"></DxComboBox>
+                </Template>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Từ ngày :" ColSpanMd="4">
+                <Template Context="qr">
+                    <DxDateEdit @bind-Date="@FromDate" Format="dd-MM-yyyy"></DxDateEdit>
+                </Template>
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="Đến ngày :" ColSpanMd="4">
+                <Template Context="qr">
+                    <DxDateEdit @bind-Date="@ToDate" Format="dd-MM-yyyy"></DxDateEdit>
+                </Template>
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem>
+                <Template Context="qr">
+                    <DxButton @onclick="@SearchAsync" Text="Tìm hóa đơn"></DxButton>
+                </Template>
+            </DxFormLayoutItem>
+
+        </DxFormLayout>
+
+        @if (!string.IsNullOrEmpty(Status))
+        {
+            <div class="alert alert-info">@Status</div>
+        }
+       
+            <eInvoiceApp.Views.InvoicesView ListType="Seller" Invoices="@Invoices"></eInvoiceApp.Views.InvoicesView>
+   
+
+    </Authorized>
+
+    <NotAuthorized>
+        <div class="alert alert-success">
+            <span>Quý khách hàng đã có tài khoản Lava có thể</span>
+            <DxButton Context="ctx" IconCssClass="oi oi-account-login" @onclick="@(()=> navi.NavigateTo("/Account/Login?Caller=Seller",true))">Đăng nhập</DxButton>
+            <span>bằng tài khoản Lava để theo dõi hóa đơn của công ty mình.</span>
+        </div>
+
+        <eInvoiceApp.Views.SellerSecurityCode></eInvoiceApp.Views.SellerSecurityCode>
+
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+
+@code
+{
+
+    string Status = "";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Parameter] public string TaxId { get; set; }
+
+    [Parameter] public DateTime FromDate { get; set; }
+
+    [Parameter] public DateTime ToDate { get; set; }
+
+    public SPC.eInvoice.InvoiceInfos Invoices = null;
+
+    List<string> TaxCodes = new List<string>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        FromDate = new SPC.SmartData.SmartDate("1").Date;
+
+        ToDate = new SPC.SmartData.SmartDate("LM").Date;
+
+        await base.OnParametersSetAsync();
+
+        var authState = await authenticationStateTask;
+
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var filter = new Dictionary<string, string>();
+            filter.Add("PartitionKey", user.Identity.Name);
+
+            filter.Add("Department", "<<Admin|Accounting");
+
+
+            TaxCodes = (from info in await SPC.Cloud.Members.CompanyUserInfoList.GetInfoListAsync(filter) where (!info.Suspended.MatchesRegExp("S|C")) select info.CompanyId).ToList();
+
+            if (TaxCodes != null && TaxCodes.Count > 0)
+            {
+                TaxId = TaxCodes[0];
+
+                await LookupCompanyNameAsync();
+            }
+        }
+
+
+    }
+
+    private async Task SearchAsync()
+    {
+        Status = $"Đang tìm các hóa đơn trong khoảng {FromDate.ToString("dd-MM-yyyy")}..{ToDate.ToString("dd-MM-yyyy")}";
+
+
+
+        var filter = new Dictionary<string, string>();
+        filter.Add("PartitionKey", TaxId);
+
+        filter.Add("InvDate", $"<<{FromDate.ToString("yyyy-MM-dd")}..{ToDate.ToString("yyyy-MM-dd")}");
+
+
+
+        Invoices = await SPC.eInvoice.InvoiceInfos.SearchInvoicesAsync(filter);
+
+        if (Invoices == null || Invoices.Count == 0)
+            Status = $"Không có hóa đơn nào phát sinh trong khoảng  {FromDate.ToString("dd-MM-yyyy")}..{ToDate.ToString("dd-MM-yyyy")}";
+        else
+            Status = "";
+
+        await SPC.eInvoice.InvoiceInfos.PopulateTheSellerNameAsync(Invoices);
+    }
+
+    #region Lookup Company Name
+
+    [Parameter] public string CompanyName { get; set; }
+
+    private async Task LookupCompanyNameAsync()
+    {
+        if (!string.IsNullOrEmpty(TaxId))
+        {
+            var query = new SPC.eInvoice.Companies();
+            query.SetParameters(new Dictionary<string, string>() { { "MST", TaxId } });
+
+            var searchonecompany = await query.GetBOListAsync();
+
+            if (searchonecompany.Count > 0)
+            {
+                var onecom = searchonecompany[0] as SPC.Cloud.Members.RegCompanies.RegCompany;
+
+                CompanyName = onecom.CompanyName;
+            }
+
+        }
+    }
+
+    #endregion
+
+}

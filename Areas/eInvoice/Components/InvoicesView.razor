@@ -1,0 +1,74 @@
+﻿
+@using SPC.Helper.Extension
+@using SPC.Helper
+
+@namespace eInvoiceApp.Views
+
+@inject NavigationManager navi
+
+
+@if (Invoices != null)
+{
+    <DxDataGrid Data="@Invoices" ShowPager="@ShowPager" SelectionMode="DataGridSelectionMode.None">
+
+        <DxDataGridColumn Field="@nameof(SPC.eInvoice.InvoiceInfo.ProformaNo)" Caption="Số nội bộ" Width="100px"></DxDataGridColumn>
+
+        <DxDataGridColumn Field="@nameof(SPC.eInvoice.InvoiceInfo.BookNo)" Caption="Mẫu số" Width="100px"></DxDataGridColumn>
+
+        <DxDataGridColumn Caption="Số hóa đơn" Width="150px">
+            <DisplayTemplate>
+                @(((SPC.eInvoice.InvoiceInfo) context).Serial) - @(((SPC.eInvoice.InvoiceInfo) context).InvoiceNo)
+            </DisplayTemplate>
+        </DxDataGridColumn>
+
+        <DxDataGridColumn Field="@nameof(SPC.eInvoice.InvoiceInfo.InvDate)" Caption="Phát hành ngày" Width="100px" />
+
+        @if (ListType != "Seller")
+        {
+            <DxDataGridColumn Caption="Người bán" Width="300px">
+                <DisplayTemplate>
+                    @(((SPC.eInvoice.InvoiceInfo) context).SellerTaxCode) - @(((SPC.eInvoice.InvoiceInfo) context).Seller)
+                </DisplayTemplate>
+            </DxDataGridColumn>
+        }
+
+        @if (ListType != "Buyer")
+        {
+            <DxDataGridColumn Caption="Người mua" Width="300px">
+                <DisplayTemplate>
+                    @(((SPC.eInvoice.InvoiceInfo) context).BuyerTaxCode) - @(((SPC.eInvoice.InvoiceInfo) context).Buyer)
+                </DisplayTemplate>
+            </DxDataGridColumn>
+        }
+
+        <DxDataGridColumn Caption="Tình trạng" Width="50px">
+            <DisplayTemplate>
+                @(((SPC.eInvoice.InvoiceInfo) context).Status.Translate())
+            </DisplayTemplate>
+        </DxDataGridColumn>
+
+        <DxDataGridColumn Caption="Tải về" Width="100px">
+            <DisplayTemplate Context="info">
+                <DxButton IconCssClass="oi oi-document" @onclick="(()=>DownloadPdf(info))">Pdf</DxButton>
+                <label> - </label>
+                <DxButton IconCssClass="oi oi-document" @onclick="(()=>DownloadXml(info))">Xml</DxButton>
+            </DisplayTemplate>
+        </DxDataGridColumn>
+
+    </DxDataGrid>
+}
+
+
+@code {
+
+    [Parameter] public string ListType { get; set; }
+
+    [Parameter] public bool ShowPager { get; set; } = true;
+
+    [Parameter] public SPC.eInvoice.InvoiceInfos Invoices { get; set; }
+
+
+}
+
+
+

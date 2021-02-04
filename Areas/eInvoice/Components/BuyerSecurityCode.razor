@@ -1,0 +1,95 @@
+﻿@page "/BuyerSecurityCode"
+
+
+<DxFormLayout>
+
+    <DxFormLayoutItem Caption="Mã số thuế người mua:" ColSpanMd="6">
+        <Template Context="tk">
+            <DxTextBox @bind-Text="@Buyer"></DxTextBox>
+        </Template>
+    </DxFormLayoutItem>
+
+    <DxFormLayoutItem Caption="Mã bảo mật:" ColSpanMd="6">
+        <Template Context="tk">
+            <DxTextBox @bind-Text="@SecurityCode"></DxTextBox>
+        </Template>
+    </DxFormLayoutItem>
+
+   
+
+    <DxFormLayoutItem ColSpanMd="4" ColSpanSm="12">
+        <Template Context="tk">
+            <DevExpress.Blazor.DxButton Text="Tìm hóa đơn ..." @onclick="SearchAsync" IconCssClass="oi oi-magnifying-glass"></DevExpress.Blazor.DxButton>
+        </Template>
+    </DxFormLayoutItem>
+
+</DxFormLayout>
+
+<hr />
+
+@if (!string.IsNullOrEmpty(Status))
+{
+    <div class="alert alert-warning">@Status</div>
+}
+
+<eInvoiceApp.Views.InvoicesView Invoices="@SearchResult"></eInvoiceApp.Views.InvoicesView>
+
+@code {
+
+    string Buyer { get; set; } = "";
+
+    string SecurityCode { get; set; } = "";
+
+    string Period { get; set; } = new SPC.SmartData.SmartPeriod("T").Text;
+
+    SPC.eInvoice.InvoiceInfos SearchResult { get; set; } = null;
+
+    string Status { get; set; } = "";
+
+    bool IsSearching = false;
+
+    async Task SearchAsync()
+    {
+        try
+        {
+            var thePeriod = new SPC.SmartData.SmartPeriod(Period).Text;
+            if (!IsSearching)
+            {
+                IsSearching = true;
+
+                if (string.IsNullOrEmpty(Buyer))
+                {
+                    Status = "Xin nhập mã số thuế người mua";
+                }
+                else if (string.IsNullOrEmpty(SecurityCode))
+                {
+                    Status = "Xin nhập mã kiểm soát của người mua";
+                }
+                else if (!SecurityCode.Trim().Equals(SPCHash.CRCToBase36($"Buyer:{Buyer.Trim()}")))
+                {
+                    //12ZGLJF
+                    Status = "Mã kiểm soát không hợp lệ. Xin liên hệ với đơn vị cung cấp dịch vụ để lấy mã kiểm soát";
+                }
+                else
+                {
+                    Status = $"Trích xuất hóa đơn người mua ...";
+
+                    SearchResult = await SPC.eInvoice.InvoiceInfos.GetBuyerInvoiceInfosAsync(Buyer);
+
+                    Status = "";
+                }
+
+            }
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+        finally
+        {
+            IsSearching = false;
+        }
+    }
+
+}

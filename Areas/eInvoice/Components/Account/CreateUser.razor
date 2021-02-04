@@ -1,0 +1,105 @@
+﻿@page "/CreateUser"
+
+
+@namespace eInvoiceApp.Views
+
+@inject BlazorSession bs;
+
+<h3>CreateUser</h3>
+
+<DxFormLayout>
+    <DxFormLayoutGroup Caption="Tài khoản">
+
+        <DxFormLayoutItem Caption="Mã số thuế:" ColSpanMd="4">
+            <Template Context="tk">
+                <DxTextBox @bind-Text="@CompanyTaxId"></DxTextBox>
+            </Template>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="Thông tin công ty:" ColSpanMd="4">
+            <Template Context="tk">
+                <DxTextBox @bind-Text="@CompanyDescription" ReadOnly="true"></DxTextBox>
+            </Template>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="Email nhân viên công ty:" ColSpanMd="4" BeginRow="true">
+            <Template Context="tk">
+                <DxTextBox @bind-Text="@UserEmail"></DxTextBox>
+            </Template>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem ColSpanMd="4" ColSpanSm="12">
+            <Template Context="tk">
+                <DevExpress.Blazor.DxButton Text="Tạo tài khoản ..." @onclick="CreateAccountAsync" IconCssClass="oi oi-key"></DevExpress.Blazor.DxButton>
+            </Template>
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+</DxFormLayout>
+
+@code {
+
+    [Parameter] public string CompanyTaxId { get; set; }
+
+    [Parameter] public string CompanyDescription { get; set; }
+
+    [Parameter] public string UserEmail { get; set; }
+
+    private bool IsCreatingAccount;
+
+    private async Task CreateAccountAsync()
+    {
+        try
+        {
+            if (IsCreatingAccount)
+            {
+                bs.Toast($"Đang tạo tài khoản: {UserEmail} cho công ty {CompanyTaxId}. {CompanyDescription}".Trim());
+            }
+            else
+            {
+                IsCreatingAccount = true;
+
+                var users = UserEmail.Split(new char[] { ';', ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
+
+                var added = new List<string>();
+
+                foreach (string item in users)
+                {
+                    string sendpassMsg = "";
+                    if (!await SPC.Cloud.Members.Subscriber.ExistsAsync(item))
+                    {
+                        var subs = await SPC.Cloud.Members.Subscriber.NewSubscriberAsync(item);
+
+                        subs.RegCompany = CompanyTaxId;
+
+                        subs.Name = $"{subs.SubscriberId} ({CompanyTaxId})";
+
+                        subs = await subs.SaveBOAsync() as SPC.Cloud.Members.Subscriber;
+
+                        await subs.SendPasswordAsync();
+
+                        sendpassMsg = $"Đã tạo tài khoản đăng nhập và gửi mật khẩu đến {item}.";
+                    }
+
+                    var mapping = await SPC.Cloud.Members.CompanyUser.NewCompanyUserAsync(item, CompanyTaxId);
+
+                    await mapping.SaveBOAsync();
+
+                    bs.Toast($"{sendpassMsg} Đã liên kết tài khoản: {item} với công ty {CompanyTaxId}.".Trim());
+
+                }
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            bs.ConfirmYes("Error", ex.Message, null);
+
+        }
+        finally
+        {
+            IsCreatingAccount = false;
+        }
+    }
+}

@@ -1,0 +1,71 @@
+﻿@page "/"
+@inject NavigationManager navi
+
+
+<div class="jumbotron">
+    <h1>Trang tra cứu hóa đơn điện tử</h1>
+    <p class="lead">Tra cứu hóa đơn điện tử phát hành bằng chương trình @(SPC.Ctx.AppConfig.ProductName)</p>
+</div>
+
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Tra cứu hóa đơn</h2>
+            <p>
+                Tra cứu hóa đơn với mã bảo mật.
+            </p>
+            <p><button class="btn btn-info" @onclick="NavigateToSearchOne">Tìm theo mã bảo mật</button></p>
+        </div>
+
+        <div class="col-md-4">
+            <h2>Hóa đơn của người bán</h2>
+            <p>Dành cho đơn vị phát hành hóa đơn bằng @(SPC.Ctx.AppConfig.ProductName). Cần Login bằng email và mật khẩu đăng nhập Lava</p>
+            <p><button class="btn btn-info" @onclick="NavigateToSeller">Hóa đơn của người bán</button></p>
+        </div>
+        <div class="col-md-4">
+            <h2>Hóa đơn của người mua</h2>
+            <p>Dành cho người mua, nhận hóa đơn điện tử phát hành bằng chương trình @(SPC.Ctx.AppConfig.ProductName). Cần biết mã số thuế người mua và mã bảo mật</p>
+            <p><button class="btn btn-info" @onclick="NavigateToBuyer">Hóa đơn của người mua</button></p>
+        </div>
+    </div>
+
+
+</div>
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+     void NavigateToSeller()
+    {
+
+        navi.NavigateTo("Seller");
+
+    }
+
+    void NavigateToBuyer()
+    {
+        navi.NavigateTo("Buyer");
+
+    }
+
+    void NavigateToSearchOne()
+    {
+        navi.NavigateTo("SearchOne");
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await  base.OnAfterRenderAsync(firstRender);
+
+        var authState = await authenticationStateTask;
+
+        if (authState.User.Identity.IsAuthenticated)
+        {
+            SPC.Cloud.Members.CompanyUser.CreateMappingUserTaxCodeIfNeededAsync(authState.User.Identity.Name, true).TaskFireAndForget();
+        }
+
+    }
+}

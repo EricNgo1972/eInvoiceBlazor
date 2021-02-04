@@ -1,0 +1,19 @@
+﻿@page "/SearchOne"
+@namespace eInvoiceApp.Views
+
+
+<SearchByCodeForm SearchResult="UpdateResult"  >
+    <InvoicesView Invoices="@Invoices" ShowPager="false"></InvoicesView>
+</SearchByCodeForm>
+ 
+
+@code {
+
+    SPC.eInvoice.InvoiceInfos Invoices { get; set; }
+
+    private void UpdateResult( SPC.eInvoice.InvoiceInfos result)
+    {
+        Invoices = result;
+    }
+
+}

@@ -1,0 +1,30 @@
+﻿
+@namespace eInvoiceApp.Views
+
+@if (Company != null)
+{
+    <DxFormLayout Data="@Company">
+        <DxFormLayoutGroup Caption="Thông tin chung">
+            <DxFormLayoutItem Field="@nameof(Company.TaxCode)" ReadOnly="true" Caption="Mã số thuế: " ColSpanMd="4" ColSpanSm="6"></DxFormLayoutItem>
+            <DxFormLayoutItem Field="@nameof(Company.CompanyName)" ReadOnly="true" Caption="Tên công ty: " ColSpanMd="8"></DxFormLayoutItem>
+            <DxFormLayoutItem Field="@nameof(Company.Site)" Caption="Chi nhánh : " ColSpanMd="4" ColSpanSm="6"></DxFormLayoutItem>
+
+            <DxFormLayoutItem Field="@nameof(Company.Address)" Caption="Địa chỉ: " ColSpanMd="12" BeginRow="true"></DxFormLayoutItem>
+            <DxFormLayoutItem Field="@nameof(Company.City)" Caption="Thành phố : " ColSpanMd="4" ColSpanSm="6" BeginRow="true"></DxFormLayoutItem>
+
+            <DxFormLayoutItem Field="@nameof(Company.IssuedDate)" ReadOnly="true" Caption="Đăng ký :" ColSpanMd="4" ColSpanSm="6"></DxFormLayoutItem>
+        </DxFormLayoutGroup>
+
+        <DxFormLayoutGroup Caption="Liên hệ">
+            <DxFormLayoutItem Field="@nameof(Company.Telephone)" Caption="Điện thoại : " ColSpanMd="6"></DxFormLayoutItem>
+            <DxFormLayoutItem Field="@nameof(Company.Email)" Caption="Email : " ColSpanMd=" 6"></DxFormLayoutItem>
+        </DxFormLayoutGroup>
+    </DxFormLayout>
+}
+
+@code {
+
+    [Parameter]
+    public SPC.Cloud.Members.RegCompanies.RegCompany Company { get; set; }
+
+}

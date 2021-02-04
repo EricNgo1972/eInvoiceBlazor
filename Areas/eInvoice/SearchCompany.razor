@@ -1,0 +1,46 @@
+﻿@page "/TaxId"
+
+@namespace eInvoiceApp.Views
+
+@using SPC.Cloud.Members
+
+<h3>Tìm công ty theo mã số thuế</h3>
+
+<DxFormLayout>
+    <DxFormLayoutItem Caption="Mã số thuế cần tìm: " ColSpanMd="6">
+        <Template>
+            <DxTextBox @bind-Text="TaxId"></DxTextBox>
+        </Template>
+    </DxFormLayoutItem>
+    <DxFormLayoutItem>
+        <Template>
+
+            <DxButton Context="ctx" ColSpanMd="3" @onclick="SearchAsync" IconCssClass="oi oi-magnifying-glass">Tìm ...</DxButton>
+        </Template>
+
+    </DxFormLayoutItem>
+</DxFormLayout>
+
+@if (IsSearching == null)
+{
+    <div class="alert alert-info">Vui lòng nhập MST cần tìm rồi bấm nút <strong>Tìm</strong></div>
+}
+else if (IsSearching.Value)
+{
+    <div class="alert alert-info">Đang tìm công ty có mã số thuế: @TaxId ....</div>
+}
+else
+{
+    @if (SPCRegCompany != null)
+    {
+        <eInvoiceApp.Views.CompanyView Company="@SPCRegCompany"></eInvoiceApp.Views.CompanyView>
+
+    }
+    else
+    {
+        <p>Không tìm thấy công ty với mã số thuế: @TaxId</p>
+    }
+
+}
+
+

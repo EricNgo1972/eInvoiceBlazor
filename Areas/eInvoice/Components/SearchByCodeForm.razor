@@ -1,0 +1,198 @@
+﻿@using SPC.Helper.Extension
+
+
+@namespace eInvoiceApp.Views
+
+
+<h3>Tìm hóa đơn</h3>
+
+<EditForm Model="@searcher" OnValidSubmit="@FormSubmitted" Context="EditFormContext">
+
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <ValidationSummary />
+    <RuleValidator @ref="SearchValidator"></RuleValidator>
+    <DxFormLayout>
+
+        <DxFormLayoutItem ColSpanXl="4" ColSpanMd="6" ColSpanSm="12" Caption="Mã bảo mật: ">
+            <Template>
+                <DxTextBox @bind-Text="@searcher.SecurityCode"></DxTextBox>
+                <ValidationMessage For=@(() => searcher.SecurityCode) />
+
+            </Template>
+        </DxFormLayoutItem>
+
+        @if (RequireBuyerOrSellerCode)
+        {
+
+            <DxFormLayoutItem Caption="MST người mua:" ColSpanXl="4" ColSpanMd="6" ColSpanSm="12"  BeginRow="true">
+                <Template>
+                    <DxTextBox @bind-Text="@searcher.BuyerCode"></DxTextBox>
+                </Template>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Hoặc MST người bán:" ColSpanXl="4" ColSpanMd="6" ColSpanSm="12">
+                <Template>
+                    <DxTextBox @bind-Text="@searcher.SellerCode"></DxTextBox>
+                </Template>
+            </DxFormLayoutItem>
+
+        }
+
+
+        <DxFormLayoutItem ColSpanMd="4" ColSpanSm="12" >
+            <Template>
+
+                <DevExpress.Blazor.DxButton Text="Tìm hóa đơn..." SubmitFormOnClick="true" @onfocus="@(async ()=> await DoSubmit(EditFormContext))" IconCssClass="oi oi-magnifying-glass"></DevExpress.Blazor.DxButton>
+            </Template>
+        </DxFormLayoutItem>
+
+
+    </DxFormLayout>
+
+</EditForm>
+
+<hr />
+
+@if (IsSearching == null)
+{
+
+}
+else if (IsSearching == true)
+{
+    <div class="alert alert-info"> Đang tìm hóa đơn với mã bảo mật: @searcher.SecurityCode </div>
+}
+else if (IsSearching == false)
+{
+    @if (Invoices != null && Invoices.Count > 0)
+    {
+        @ChildContent;
+    }
+    else if (Invoices != null && Invoices.Count == 0)
+    {
+        <div class="alert alert-warning">Không tìm thấy hóa đơn có mã bảo mật @searcher.SecurityCode </div>
+    }
+}
+
+
+@code {
+
+    [Parameter]
+    public EventCallback<SPC.eInvoice.InvoiceInfos> SearchResult { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    SearchOneModel searcher = new SearchOneModel();
+
+    bool? IsSearching { get; set; }
+
+    RuleValidator SearchValidator;
+
+    SPC.eInvoice.InvoiceInfos Invoices { get; set; }
+
+    bool RequireBuyerOrSellerCode = false;
+
+    async Task DoSubmit(EditContext ctx)
+    {
+
+        //@onfocus="@(async ()=> await DoSubmit(EditFormContext))"
+
+        if (ctx.IsModified())
+        {
+            ctx.MarkAsUnmodified();
+
+            if (ctx.Validate())
+            {
+                await FormSubmitted();
+
+            }
+
+        }
+
+    }
+
+    async Task FormSubmitted()
+    {
+
+        if (IsSearching != true) //if searching is in progress. skip another search.
+        {
+            try
+            {
+                IsSearching = true;
+
+                Invoices = await searcher.SearchAsync();
+
+                if (Invoices != null && SearchResult.HasDelegate)
+                {
+                    await SearchResult.InvokeAsync(Invoices);
+                }
+                else if (Invoices == null) //search without buyer code or seller code return nothing
+                {
+                    var error = searcher.GetValidationDataNoIndex();
+                    SearchValidator.DisplayErrors(error);
+                    RequireBuyerOrSellerCode = true;
+                    StateHasChanged();
+                }
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                IsSearching = false;
+            }
+
+
+        }
+
+
+    }
+
+    //async Task FormSubmitted()
+    //{
+    //    var error = searcher.GetValidationData();
+
+    //    if (error == null)
+    //    {
+    //        SearchValidator.ClearErrors();
+
+    //        if (IsSearching == null || ! IsSearching.Value)
+    //        {
+    //            try
+    //            {
+    //                IsSearching = true;
+
+    //                Invoices = await searcher.SearchAsync();
+
+    //                if (Invoices != null && SearchResult.HasDelegate)
+    //                {
+    //                    await SearchResult.InvokeAsync(Invoices);
+    //                }
+
+    //            }
+    //            catch (Exception)
+    //            {
+    //                throw;
+    //            }
+    //            finally
+    //            {
+    //                IsSearching = false;
+    //            }
+
+
+    //        }
+    //    }
+    //    else
+    //    {
+    //        SearchValidator.DisplayErrors(error);
+    //        StateHasChanged();
+    //    }
+
+
+    //}
+
+}
+
+
+

@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>9c9972dd-43ce-47d6-bf5b-b6e8e5fc463e</UserSecretsId>
+    <Version>4.7.6.906</Version>
+    <Authors>Development Team</Authors>
+    <Company>SPC Technology</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="wwwroot\css\bootstrap\devexpress\**" />
+    <Content Remove="wwwroot\css\bootstrap\devexpress\**" />
+    <EmbeddedResource Remove="wwwroot\css\bootstrap\devexpress\**" />
+    <None Remove="wwwroot\css\bootstrap\devexpress\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Areas\eInvoice\SearchOneModel.cs" />
+    <Compile Remove="Shared\SPC Services\DeviceRepositoryImp.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Areas\eInvoice\Components\Account\CreateUser.razor" />
+    <Content Remove="wwwroot\css\dx-demo.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BlazorPlus" Version="1.2.46" />
+    <PackageReference Include="Csla" Version="5.3.2" />
+    <PackageReference Include="Csla.AspNetCore" Version="5.3.2" />
+    <PackageReference Include="Csla.Blazor" Version="5.3.2" />
+    <PackageReference Include="DevExpress.Blazor" Version="20.2.3" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.4.0" />
+    <PackageReference Include="SPC.Cloud" Version="1.5.301" />
+    <PackageReference Include="SPC.CORE" Version="1.5.3" />
+    <PackageReference Include="SPC.CORE.COM" Version="1.5.3" />
+    <PackageReference Include="SPC.CORE.Localization" Version="1.0.0" />
+    <PackageReference Include="SPC.CORE.UsrMan" Version="1.5.3" />
+    <PackageReference Include="SPC.Evaluator" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Themes\" />
+    <Folder Include="wwwroot\css\bootstrap\lux\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

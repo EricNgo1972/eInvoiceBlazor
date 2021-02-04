@@ -1,0 +1,83 @@
+﻿@page "/BuyerAccountSetup"
+@*@page "/BuyerAccountSetup/{TaxCode}"
+    @page "/BuyerAccountSetup/{TaxCode}/{Email}"*@
+
+@using SPC.Helper.Extension;
+@inject BlazorSession bs;
+
+@namespace eInvoiceApp.Views
+
+@inject AuthenticationStateProvider auth;
+@inject IJSRuntime JsRuntime;
+
+<hr />
+
+<div class="alert alert-info">
+    <p>
+        Đăng ký tài khoản người mua @Emails để theo dõi danh mục hóa đơn dành cho công ty @TaxCode bằng form dưới đây.
+    </p>
+    <p>
+        Quý khách hàng cần mã bảo vệ của 1 hóa đơn gửi đến email của mình.
+    </p>
+    @*<p>
+            Nếu cần đăng ký bằng email khác với email nhận hóa đơn. Quý khách hàng cần gửi mail đến bộ phận hỗ trợ và gửi kèm theo bản sao Giấy phép đăng ký kinh doanh của công ty mình.
+        </p>*@
+</div>
+
+<DxFormLayout>
+    <DxFormLayoutGroup Caption="Thông tin hóa đơn">
+
+        <DxFormLayoutItem Caption="Mã số thuế người mua: ">
+            <Template Context="hd">
+                <DxTextBox @bind-Text="@TaxCode"></DxTextBox>
+            </Template>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Field="@nameof(SecurityCode)" Caption="Mã tra cứu hóa đơn: ">
+            <Template Context="hd">
+                <DxTextBox @bind-Text="@SecurityCode"></DxTextBox>
+            </Template>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem>
+            <Template Context="hd">
+                <DxButton Text="Kiểm tra" @onclick="CheckSecurityAsync"></DxButton>
+            </Template>
+        </DxFormLayoutItem>
+
+
+    </DxFormLayoutGroup>
+
+</DxFormLayout>
+
+
+@if (Emails == "-")
+{
+    <div class="alart alert-warning">Hóa đơn với mã tra cứu @SecurityCode không có email người nhận</div>
+}
+else if (!string.IsNullOrEmpty(Emails))
+{
+    <DxFormLayout>
+        <DxFormLayoutGroup Caption="Tài khoản">
+
+            <DxFormLayoutItem Caption="Email người nhận hóa đơn:" ColSpanMd="8">
+                <Template Context="tk">
+                    <DxTextBox @bind-Text="@Emails" ReadOnly="true"></DxTextBox>
+                </Template>
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem ColSpanMd="4" ColSpanSm="12">
+                <Template Context="tk">
+                    <DevExpress.Blazor.DxButton Text="Tạo tài khoản ..." @onclick="CreateAccountAsync" IconCssClass="oi oi-key"></DevExpress.Blazor.DxButton>
+                </Template>
+            </DxFormLayoutItem>
+        </DxFormLayoutGroup>
+
+    </DxFormLayout>
+}
+else if (Emails == "!")
+{
+    <div class="alart alert-warning">Không tìm được hóa đơn với mã tra cứu @SecurityCode</div>
+}
+
+ 

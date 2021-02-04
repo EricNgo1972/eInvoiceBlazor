@@ -1,0 +1,39 @@
+﻿@page "/SellerSecurityCode"
+@namespace eInvoiceApp.Views
+
+<DxFormLayout>
+
+    <DxFormLayoutItem Caption="Mã số thuế người bán:" ColSpanMd="6">
+        <Template Context="tk">
+            <DxTextBox @bind-Text="@Seller"></DxTextBox>
+        </Template>
+    </DxFormLayoutItem>
+
+    <DxFormLayoutItem Caption="Mã bảo mật:" ColSpanMd="6">
+        <Template Context="tk">
+            <DxTextBox @bind-Text="@SecurityCode"></DxTextBox>
+        </Template>
+    </DxFormLayoutItem>
+
+    <DxFormLayoutItem Caption="Tháng:" ColSpanMd="6">
+        <Template Context="tk">
+            <DxTextBox @bind-Text="@Period"></DxTextBox>
+        </Template>
+    </DxFormLayoutItem>
+
+    <DxFormLayoutItem ColSpanMd="4" ColSpanSm="12">
+        <Template Context="tk">
+            <DevExpress.Blazor.DxButton Text="Tìm hóa đơn ..." @onclick="SearchAsync" IconCssClass="oi oi-magnifying-glass"></DevExpress.Blazor.DxButton>
+        </Template>
+    </DxFormLayoutItem>
+
+</DxFormLayout>
+
+<hr />
+
+@if (!string.IsNullOrEmpty(Status))
+{
+    <div class="alert alert-warning">@Status</div>
+}
+
+<eInvoiceApp.Views.InvoicesView Invoices="@SearchResult"></eInvoiceApp.Views.InvoicesView>

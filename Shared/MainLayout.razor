@@ -1,0 +1,39 @@
+﻿@inherits LayoutComponentBase
+
+@inject BlazorSession bls;
+
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <div class="main">
+
+        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+
+                    Hello, @context.User.Identity.Name
+                    <form method="post" action="/Account/Logout">
+                        <button type="submit" class="nav-link btn btn-link">Đăng xuất</button>
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink class="nav-link" href="/Account/Login">
+                        <span class="oi oi-account-login" aria-hidden="true"></span> Đăng nhập
+                    </NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
+            <a href="about"><div class="oi oi-info" /></a>
+            <a href="https://phoebusfiles.blob.core.windows.net/help/webportal_lavainvoice.html"><div class="oi oi-question-mark" /></a>
+        </div>
+
+        <div class="content px-4">
+            @Body
+        </div>
+
+
+    </div>
+ 
+
+  
+

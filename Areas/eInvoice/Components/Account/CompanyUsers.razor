@@ -1,0 +1,148 @@
+﻿@page  "/Subscribers"
+@namespace eInvoiceApp.Areas.Account
+
+@inject BlazorSession bs;
+
+<h3>Quản lý tài khoản đăng nhập</h3>
+
+@if (CanAccess)
+{
+
+
+<DxFormLayout>
+
+    <DxFormLayoutItem Caption="Mã số thuế :" ColSpanMd="4">
+        <Template Context="qr">
+            <DxComboBox Data="@TaxCodes" @bind-Value="@TaxId" AllowUserInput="@IsConsultant"></DxComboBox>
+        </Template>
+    </DxFormLayoutItem>
+
+    <DxFormLayoutItem>
+        <Template>
+            <DxButton Context="ctx" ColSpanMd="3" @onclick="SearchAsync" IconCssClass="oi oi-magnifying-glass">Tìm ...</DxButton>
+        </Template>
+
+    </DxFormLayoutItem>
+</DxFormLayout>
+
+
+@if (IsSearching == null)
+{
+<div class="alert alert-info">Vui lòng nhập MST cần tìm rồi bấm nút <strong>Tìm</strong></div>
+}
+else if (IsSearching.Value)
+{
+<div class="alert alert-info">Đang tìm tài khoản đăng nhập cho công ty: @TaxId ....</div>
+}
+else if (!string.IsNullOrEmpty(Status))
+{
+<div class="alert alert-info">@Status</div>
+}
+else
+{
+@if (SPCRegCompany != null)
+    {
+<p>@SPCRegCompany.CompanyName</p>
+
+<DxDataGrid @ref="grid"
+            Data="@Users"
+            ShowFilterRow="@ShowFilterRow"
+            @bind-SingleSelectedDataRow="@SelectedRow"
+            RowRemovingAsync="@OnRowRemoving"
+            RowUpdatingAsync="@OnRowUpdating"
+            RowInsertingAsync="@OnRowInserting"
+            InitNewRow="@OnInitNewRow">
+    <HeaderTemplate>
+        <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Plain">
+            <DxToolbarItem Text="Mở TK mới" BeginGroup="true" Click="@OnAddNewClick" IconCssClass="oi oi-plus" />
+            <DxToolbarItem Text="Sửa" Click="@OnEditClick" IconCssClass="oi oi-pencil" Enabled="@Enabled" />
+            <DxToolbarItem Text="Xóa" Click="@OnDeleteClick" IconCssClass="oi oi-trash" Enabled="@Enabled" />
+            <DxToolbarItem Text="Hiện bộ lọc" BeginGroup="true" GroupName="FilterRow" Click="@OnShowFilterRow" IconCssClass="oi oi-magnifying-glass" />
+
+            <DxToolbarItem Text="Gửi lại mật khẩu" BeginGroup="true" GroupName="Tools" Click="@ResendPasswordAsync" IconCssClass="oi oi-envelope-closed" />
+
+            <DxToolbarItem Text="Hướng dẫn" NavigateUrl="https://phoebusfiles.blob.core.windows.net/help/lava_einvoice_users.html" BeginGroup="true"
+                           Alignment="ToolbarItemAlignment.Right" IconCssClass="oi oi-document" target="_blank" />
+        </DxToolbar>
+    </HeaderTemplate>
+    <Columns>
+
+        <DxDataGridColumn Caption="Email đăng nhập" Field="@nameof(SPC.Cloud.Members.CompanyUserInfo.UserId)" Width="200px"></DxDataGridColumn>
+        <DxDataGridColumn Caption="Tên tài khoản" Field="@nameof(SPC.Cloud.Members.CompanyUserInfo.Name)" Width="300px"></DxDataGridColumn>
+        <DxDataGridColumn Caption="Nhóm" Field="@nameof(SPC.Cloud.Members.CompanyUserInfo.Department)" Width="150px"></DxDataGridColumn>
+        <DxDataGridColumn Caption="Tạm ngưng" Field="@nameof(SPC.Cloud.Members.CompanyUserInfo.Suspended)" Width="50px"></DxDataGridColumn>
+
+    </Columns>
+</DxDataGrid>
+
+    }
+    else
+    {
+<p>Không tìm thấy công ty với mã số thuế: @TaxId</p>
+    }
+
+}
+
+}
+else
+{
+   <div class="alert alert-info">Chỉ tài khoản nhóm Admin hoặc Constultant có thể truy câp tính năng này  <strong>Tìm</strong></div>
+}
+
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    SPC.Cloud.Members.CompanyUserInfo SelectedRow;
+    DxDataGrid<SPC.Cloud.Members.CompanyUserInfo> grid;
+
+    bool Enabled { get; set; } = true;
+    public string TaxId { get; set; }
+
+    public string TaxText { get; set; }
+
+
+    async Task OnAddNewClick()
+    {
+        await grid.StartRowEdit(null);
+        if (!Enabled)
+            ChangeToolbarEnabled(true);
+    }
+    async Task OnEditClick()
+    {
+        await grid.StartRowEdit(SelectedRow);
+    }
+
+    async Task OnDeleteClick()
+    {
+        await OnRowRemoving(SelectedRow);
+
+        await grid.Refresh();
+        if (Users.Count() == 0)
+            ChangeToolbarEnabled(false);
+        else
+            SetSelection();
+    }
+
+    void SetSelection()
+    {
+        SelectedRow = Users.FirstOrDefault();
+    }
+
+    void ChangeToolbarEnabled(bool enabled)
+    {
+        Enabled = enabled;
+        StateHasChanged();
+    }
+
+    bool ShowFilterRow { get; set; }
+    void OnShowFilterRow(ToolbarItemClickEventArgs e)
+    {
+        ShowFilterRow = !ShowFilterRow;
+    }
+
+}
+
+

@@ -1,0 +1,25 @@
+﻿@using SPC.Helper;
+ 
+<BlazorContainer IsShared="true" />
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @("Please login to access this content!".Translate())
+                </NotAuthorized>
+                <Authorizing>
+                    Authorizing...
+                </Authorizing>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p>@("Sorry, there's nothing at this address.".Translate())</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+
